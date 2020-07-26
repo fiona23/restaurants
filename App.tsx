@@ -1,117 +1,88 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * Generated with the TypeScript template
- * https://github.com/react-native-community/react-native-template-typescript
- *
- * @format
- */
-
-import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
-
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-declare const global: {HermesInternal: null | {}};
+import React, {useState, useCallback} from 'react';
+import {SafeAreaView, StyleSheet, View, StatusBar, Modal} from 'react-native';
+import {Card, Button, Text} from 'react-native-elements';
+import {Restaurant} from './types';
+import {RestaurantWebView} from './RestaurantWebView';
+import {RestaurantList} from './RestaurantList';
+import {URL} from './constants';
 
 const App = () => {
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [displayWebView, setDisplayWebView] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const onclick = useCallback(async () => {
+    // don't send again while we are sending
+    if (isSending) return;
+    // update state
+    setIsSending(true);
+    try {
+      let response = await fetch(URL);
+      let json = await response.json();
+      setIsSending(false);
+      setRestaurants(json.data.restaurant.items);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [isSending]); // update the callback if the state changes
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
+        <View style={styles.sectionContainer}>
+          {restaurants.length === 0 ? (
+            <Card
+              containerStyle={styles.container}
+              title="WELCOME!"
+              image={require('./assets/background.png')}>
+              <Text style={styles.restaurantText}>
+                A restaurant is generally an establishment where the public may
+                obtain meals or refreshments. The term Restaurant has its
+                origins in Paris, where one A. Boulanger started as a soup
+                vendor in 1765. A sign on the door said “restaurant”, referring
+                to the restorative quality of the soups and broths served
+                within.
+              </Text>
+              <Button
+                buttonStyle={styles.viewRestaurantsButton}
+                onPress={onclick}
+                accessibilityLabel="Tap to view a list of restaurants"
+                title="View Restaurants"
+              />
+            </Card>
+          ) : (
+            <RestaurantList
+              restaurants={restaurants}
+              setDisplayWebView={setDisplayWebView}
+            />
           )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.tsx</Text> to change
-                this screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
+        </View>
+        <Modal visible={displayWebView.length !== 0}>
+          <RestaurantWebView
+            displayWebView={displayWebView}
+            setDisplayWebView={setDisplayWebView}
+          />
+        </Modal>
       </SafeAreaView>
     </>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  viewRestaurantsButton: {
+    borderRadius: 0,
+    marginLeft: 0,
+    marginRight: 0,
+    marginTop: '50%',
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
+  restaurantText: {
+    marginBottom: 30,
+    marginTop: 50,
+    fontSize: 18,
   },
-  body: {
-    backgroundColor: Colors.white,
-  },
+  container: {height: '95%', justifyContent: 'space-between'},
   sectionContainer: {
     marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
   },
 });
 
