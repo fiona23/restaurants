@@ -13,7 +13,11 @@ export const RestaurantWebView = ({
   return (
     <>
       <View style={styles.backButton}>
-        <Button title="Back" onPress={() => setDisplayWebView('')} />
+        <Button
+          title="Back"
+          onPress={() => setDisplayWebView('')}
+          accessibilityLabel="Press to go back"
+        />
       </View>
       <WebView source={{uri: displayWebView}} />
     </>
